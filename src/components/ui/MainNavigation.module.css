@@ -1,0 +1,17 @@
+.navigation {
+  margin: 0 auto;
+  padding: 16px 0;
+  max-width: 1200px;
+}
+.navigation a {
+  margin-right: 10px;
+}
+.navigation hr {
+  margin: 10px 0;
+  border: 2px solid rgb(var(--foreground));
+  opacity: 0.5;
+}
+
+@media (min-width: 768px) {
+  
+}
