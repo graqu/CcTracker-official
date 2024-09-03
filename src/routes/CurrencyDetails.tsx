@@ -1,4 +1,4 @@
-import { CryptoType } from '@/lib/types';
+import { CryptoType } from "@/lib/types";
 import {
   LineChart,
   Line,
@@ -7,15 +7,15 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from 'recharts';
-import { CoinGeckoContext } from '@/store/CoinsDataStore';
-import { useContext, useEffect, useState } from 'react';
-import { buttonVariants } from '@/components/ui/button';
-import { useParams } from 'react-router';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import emptyPhoto from '../assets/nothing.jpg';
+} from "recharts";
+import { CoinGeckoContext } from "@/store/CoinsDataStore";
+import { useContext, useEffect, useState } from "react";
+import { buttonVariants } from "@/components/ui/button";
+import { useParams } from "react-router";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import emptyPhoto from "../assets/nothing.jpg";
 
 /////COMPONENT DEFINITION
 
@@ -24,28 +24,37 @@ const DetailsPage = () => {
   const params = useParams();
   const ctx = useContext(CoinGeckoContext);
   const coinIsFav = ctx.favouritesList.coinsList.some(
-    (coin) => coin.id === params.currencyId,
+    (coin) => coin.id === params.currencyId
   );
-  const [chartType, setChartType] = useState<string>('prices');
-  const [chartTable, setChartTable] = useState(undefined);
+
+  type ChartName = "prices" | "market_caps" | "total_volumes";
+  type PriceEntry =
+    | {
+        date: string;
+        price: number | never;
+      }
+    | undefined;
+
+  const [chartType, setChartType] = useState<ChartName>("prices");
+  const [chartTable, setChartTable] = useState<PriceEntry[]>([]);
 
   ///Values
   const currencyId = params.currencyId;
   const coinData: CryptoType | undefined = ctx.marketData?.find(
-    (coin) => coin.id === currencyId,
+    (coin) => coin.id === currencyId
   );
   const loadingCoinsDataStatus = ctx.loadingDataState.mainList;
   const loadingChartsDataStatus = ctx.loadingDataState.chartsList;
 
   const heading = (() => {
-    if (chartType === 'prices') {
-      return 'Price';
-    } else if (chartType === 'market_caps') {
-      return 'Market cap';
-    } else if (chartType === 'total_volumes') {
-      return 'Total volume';
+    if (chartType === "prices") {
+      return "Price";
+    } else if (chartType === "market_caps") {
+      return "Market cap";
+    } else if (chartType === "total_volumes") {
+      return "Total volume";
     } else {
-      return '';
+      return "";
     }
   })();
   let holdingsAmount = 0;
@@ -53,8 +62,15 @@ const DetailsPage = () => {
   if (coinIsFav) {
     const arr = [...ctx.favouritesList.coinsList];
     const data = arr.find((coin) => coin.id === params.currencyId);
-    holdingsAmount = data.amount;
+    holdingsAmount = data ? data.amount : 0;
   }
+
+  type ChartInfo = {
+    id: string;
+    market_caps?: [];
+    prices?: [];
+    total_volumes?: [];
+  };
 
   useEffect(() => {
     async function setData() {
@@ -62,9 +78,9 @@ const DetailsPage = () => {
         const data = await ctx.getChart(currencyId);
 
         if (data) {
-          const arr = { ...data };
-          const chartData = arr[chartType].map((dataPoint) => ({
-            date: new Date(dataPoint[0]).toLocaleDateString('pl-PL'),
+          const coinInfo: ChartInfo = { id: data ? data.id : null, ...data };
+          const chartData = coinInfo[chartType]?.map((dataPoint) => ({
+            date: new Date(dataPoint[0]).toLocaleDateString("pl-PL"),
             price: dataPoint[1],
           }));
           setChartTable(chartData);
@@ -77,13 +93,12 @@ const DetailsPage = () => {
   //Functions
 
   const dataTypeHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const chosenValue = e.target.value;
+    const chosenValue: ChartName | string = e.target.value;
 
     if (chosenValue) {
       setChartType(chosenValue);
     }
   };
-
   ////COIN INFO CONTENT
   let coinDataContent;
 
@@ -97,11 +112,11 @@ const DetailsPage = () => {
           </div>
         </div>
         <div>
-          Current Price:{' '}
+          Current Price:{" "}
           <Skeleton className="w-[40px] h-[24px] m-0 inline-block" />
         </div>
         <div>
-          Market Cap:{' '}
+          Market Cap:{" "}
           <Skeleton className="w-[40px] h-[24px] m-0 inline-block" />
         </div>
       </>
@@ -151,7 +166,7 @@ const DetailsPage = () => {
             <span className="font-bold">1.</span> If you see only chart, the
             reason is that beta version of this app load only list of 100 most
             popular coin in current time. For rest of them and by this time you
-            can see only chart for rest of them. <br />{' '}
+            can see only chart for rest of them. <br />{" "}
             <span className="font-bold">2.</span> If You see no data, there is
             an server error or you typed wrong address
           </p>
@@ -225,7 +240,7 @@ const DetailsPage = () => {
               <Link
                 to="/user-portfolio"
                 className={`${buttonVariants({
-                  variant: 'outline',
+                  variant: "outline",
                 })} block cursor-pointer`}
               >
                 Amount: {holdingsAmount}
@@ -249,7 +264,7 @@ const DetailsPage = () => {
         ))}
 
       <Link
-        className={`${buttonVariants({ variant: 'default' })} m-[10px]`}
+        className={`${buttonVariants({ variant: "default" })} m-[10px]`}
         to="../"
       >
         Go back
