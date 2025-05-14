@@ -1,4 +1,4 @@
-import { CryptoType } from "@/lib/types";
+import { ChartsDataT, CryptoType } from "@/lib/types";
 import {
   LineChart,
   Line,
@@ -78,7 +78,10 @@ const DetailsPage = () => {
         const data = await ctx.getChart(currencyId);
 
         if (data) {
-          const coinInfo: ChartInfo = { id: data ? data.id : null, ...data };
+          const coinInfo: ChartInfo = {
+            id: data ? data.id : null,
+            ...data,
+          };
           const chartData = coinInfo[chartType]?.map((dataPoint) => ({
             date: new Date(dataPoint[0]).toLocaleDateString("pl-PL"),
             price: dataPoint[1],

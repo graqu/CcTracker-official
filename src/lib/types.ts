@@ -1,5 +1,5 @@
-import { ColumnDef } from '@tanstack/react-table';
-import { ReactNode } from 'react';
+import { ColumnDef } from "@tanstack/react-table";
+import { ReactNode } from "react";
 
 export type CryptoType = {
   id?: string;
@@ -24,7 +24,7 @@ export interface FavColumnRowType extends favItemType {
 }
 
 export interface ButtonContentInputT {
-  style: 'outline' | 'default' | 'destructive' | 'secondary' | 'ghost' | 'link';
+  style: "outline" | "default" | "destructive" | "secondary" | "ghost" | "link";
   text: string;
   disabled: boolean;
 }
@@ -49,7 +49,7 @@ export interface ContextType {
     chartsList: { isLoading: boolean; isError: boolean };
   };
   marketData: CryptoType[] | null;
-  getChart: (id: string | Promise<string>) => object | Promise<object> | void;
+  getChart: (id: string) => void | object | Promise<object>;
   chartsData: ChartsDataT[];
   favouritesList: favouritesStateType;
   onAmountUpdate: () => void;
@@ -77,4 +77,4 @@ export interface favouritesStateType {
   totalAmount: 0;
 }
 
-export type ChartTypeT = 'prices' | 'market_caps' | 'total_volumes';
+export type ChartTypeT = "prices" | "market_caps" | "total_volumes";

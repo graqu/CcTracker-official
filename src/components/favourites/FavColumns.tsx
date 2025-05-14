@@ -1,16 +1,16 @@
-import { ColumnDef } from '@tanstack/react-table';
-import { buttonVariants, Button } from '../ui/button';
-import { Link } from 'react-router-dom';
-import AmountInput from './AmountChangeInput';
-import { FavColumnRowType } from '@/lib/types';
-import AmountNumber from '../cryptocurrencies/AmountNumber';
+import { ColumnDef } from "@tanstack/react-table";
+import { buttonVariants, Button } from "../ui/button";
+import { Link } from "react-router-dom";
+import AmountInput from "./AmountChangeInput";
+import { FavColumnRowType } from "@/lib/types";
+import AmountNumber from "../cryptocurrencies/AmountNumber";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
 export const Columns: ColumnDef<FavColumnRowType>[] = [
   {
-    accessorKey: 'rank',
+    accessorKey: "rank",
     header: () => <p className="text-center">Status</p>,
     cell: ({ row }) => {
       const number = parseFloat(row.id) + 1;
@@ -18,7 +18,7 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    accessorKey: 'name',
+    accessorKey: "name",
     header: () => <p className="text-center">Crypto</p>,
     cell: ({ row }) => {
       const name = row.original.marketData.name;
@@ -26,7 +26,7 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    accessorKey: 'icon',
+    accessorKey: "icon",
     header: () => <p className="text-center">Symbol</p>,
     cell: ({ row }) => {
       const icon = row.original.marketData.icon;
@@ -34,7 +34,7 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    accessorKey: 'price',
+    accessorKey: "price",
     header: () => <p className="text-center">Current Price</p>,
     cell: ({ row }) => {
       const price = row.original.marketData.price;
@@ -42,7 +42,7 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    accessorKey: 'increased',
+    accessorKey: "increased",
     header: () => <p className="text-center">Change</p>,
     cell: ({ row }) => {
       const change = row.original.marketData.increased;
@@ -58,11 +58,11 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    accessorKey: 'amount',
+    accessorKey: "amount",
     header: () => <p className="text-center">Holdings</p>,
     cell: ({ row }) => {
       const id = row.original.id;
-      const amountHandlerFn = ( value: number) =>
+      const amountHandlerFn = (value: number) =>
         row.original.amountChanger(id, value);
       const value = row.original.amount;
 
@@ -70,14 +70,14 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    id: 'actions',
+    id: "actions",
     cell: ({ row }) => {
       const id = row.original.id;
 
       return (
         <Link
           className={`m-0 select-auto ${buttonVariants({
-            variant: 'default',
+            variant: "default",
           })}`}
           to={`/currencies/${id}`}
         >
@@ -87,7 +87,7 @@ export const Columns: ColumnDef<FavColumnRowType>[] = [
     },
   },
   {
-    id: 'actionsTwo',
+    id: "actionsTwo",
     header: () => <p className="text-center">remove</p>,
     cell: ({ row }) => {
       const id = row.original.id;

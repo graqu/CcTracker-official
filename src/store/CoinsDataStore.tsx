@@ -1,12 +1,12 @@
-import { createContext } from 'react';
-import { useEffect, useState, useReducer } from 'react';
+import { createContext } from "react";
+import { useEffect, useState, useReducer } from "react";
 import {
   CryptoType,
   ContextType,
   ChildrenProp,
   ChartsDataT,
-} from '@/lib/types';
-import { portfolioReducer } from './ContextReducer';
+} from "@/lib/types";
+import { portfolioReducer } from "./ContextReducer";
 
 export const CoinGeckoContext = createContext<ContextType>({
   loadingDataState: {
@@ -33,7 +33,7 @@ export const CoinGeckoContext = createContext<ContextType>({
 
 export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
   const [coinsData, setCoinsData] = useState<CryptoType[] | null>(null);
-  const [coinsChartData, setCoinsChartCoinsData] = useState([]);
+  const [coinsChartData, setCoinsChartCoinsData] = useState<ChartsDataT[]>([]);
   const [mainListState, setMainListState] = useState({
     isLoading: false,
     isError: false,
@@ -47,28 +47,32 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
     totalAmount: 0,
   });
   const calculateFullAmount = () => {
-    favDispath({ type: 'UPDATE_AMOUNT' });
+    favDispath({ type: "UPDATE_AMOUNT" });
   };
   const syncUserData = (data: string) => {
-    favDispath({ type: 'LOAD_LOCAL_DATA', payload: data });
+    favDispath({ type: "LOAD_LOCAL_DATA", payload: data });
   };
   const coinChangeHandler = (id: string, value: number) => {
     if (value >= 0) {
-      favDispath({ type: 'EDIT_AMOUNT', payload: { amount: value, id: id } });
+      favDispath({ type: "EDIT_AMOUNT", payload: { amount: value, id: id } });
     } else {
-      alert('New Amount must be positive number or 0');
+      alert("New Amount must be positive number or 0");
     }
     calculateFullAmount();
   };
   const updateFavCoinData = (coin: CryptoType) => {
     favDispath({
-      type: 'UPDATE_DATA',
-      payload: coin,
+      type: "UPDATE_DATA",
+      payload: {
+        id: coin.id || "",
+        amount: 0,
+        marketData: { price: coin.price },
+      },
     });
   };
   const addFavCoin = (coinID: string, amount = 0) => {
     favDispath({
-      type: 'ADD_NEW',
+      type: "ADD_NEW",
       payload: { id: coinID, amount: amount, marketData: { price: null } },
     });
     downloadMarkedData(coinID);
@@ -79,19 +83,19 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
 
     if (currentAmount > 0) {
       const confirmation = confirm(
-        'Your amount of this coin is more than 0, this action is not possible to Undo. You sure you want to delete it from favourites ?',
+        "Your amount of this coin is more than 0, this action is not possible to Undo. You sure you want to delete it from favourites ?"
       );
       if (confirmation) {
         favDispath({
-          type: 'REMOVE',
+          type: "REMOVE",
           payload: id,
         });
       } else {
-        alert('SAVED: coin is still in your favourites');
+        alert("SAVED: coin is still in your favourites");
       }
     } else {
       favDispath({
-        type: 'REMOVE',
+        type: "REMOVE",
         payload: id,
       });
     }
@@ -102,107 +106,108 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
   const downloadMarkedData = (id: string) => {
     const coinData = coinsData?.find((coin) => coin.id === id);
 
-    updateFavCoinData({
-      ...coinData,
-      price: coinData?.price,
-    });
+    if (coinData) {
+      updateFavCoinData({
+        ...coinData,
+        price: coinData?.price,
+      });
+    }
   };
 
   const resetFavCoins = () => {
     favDispath({
-      type: 'RESET',
+      type: "RESET",
     });
   };
 
   useEffect(() => {
-    const localData = localStorage.getItem('coinsTracker-portfolio');
+    const localData = localStorage.getItem("coinsTracker-portfolio");
 
     if (localData) {
       syncUserData(JSON.parse(localData));
     } else {
-      console.log('no-data');
+      console.log("no-data");
     }
   }, []);
 
-  useEffect(
-    () =>
-      async function getData() {
-        setMainListState((prev) => {
-          return { ...prev, isError: false, isLoading: true };
-        });
-        try {
-          const response = await fetch(
-            'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&price_change_percentage=24h',
-            {
-              method: 'GET',
-            },
+  useEffect(() => {
+    const getData = async () => {
+      setMainListState((prev) => {
+        return { ...prev, isError: false, isLoading: true };
+      });
+      try {
+        const response = await fetch(
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&price_change_percentage=24h",
+          {
+            method: "GET",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const array: CryptoType[] = [];
+          setMainListState((prev) => {
+            return { ...prev, isLoading: false };
+          });
+
+          data.forEach(
+            (item: {
+              name: string;
+              id: string;
+              current_price: number;
+              price_change_24h: number;
+              symbol: string;
+              image: string;
+              market_cap: number;
+            }) => {
+              const itemChange = (() => {
+                const change = item.price_change_24h;
+                if (change > 0) {
+                  return true;
+                } else if (change < 0) {
+                  return false;
+                } else {
+                  return null;
+                }
+              })();
+              const newItem: CryptoType = {
+                id: item.id,
+                name: item.name,
+                icon: item.image,
+                shortcut: item.symbol,
+                price: item.current_price,
+                marketcap: item.market_cap,
+                increased: itemChange,
+              };
+
+              if (
+                favourites.coinsList.filter(
+                  (coin: CryptoType) => coin.id === item.id
+                ).length === 1
+              ) {
+                updateFavCoinData({ ...newItem, price: item.current_price });
+              }
+              array.push(newItem);
+            }
           );
 
-          if (response.ok) {
-            const data = await response.json();
-            const array: CryptoType[] = [];
-            setMainListState((prev) => {
-              return { ...prev, isLoading: false };
-            });
-
-            data.forEach(
-              (item: {
-                name: string;
-                id: string;
-                current_price: number;
-                price_change_24h: number;
-                symbol: string;
-                image: string;
-                market_cap: number;
-              }) => {
-                const itemChange = (() => {
-                  const change = item.price_change_24h;
-                  if (change > 0) {
-                    return true;
-                  } else if (change < 0) {
-                    return false;
-                  } else {
-                    return null;
-                  }
-                })();
-                const newItem: CryptoType = {
-                  id: item.id,
-                  name: item.name,
-                  icon: item.image,
-                  shortcut: item.symbol,
-                  price: item.current_price,
-                  marketcap: item.market_cap,
-                  increased: itemChange,
-                };
-
-                if (
-                  favourites.coinsList.filter(
-                    (coin: CryptoType) => coin.id === item.id,
-                  ).length === 1
-                ) {
-                  updateFavCoinData({ ...newItem, price: item.current_price });
-                }
-                array.push(newItem);
-              },
-            );
-
-            setCoinsData(array);
-            calculateFullAmount();
-            // console.log(array);
-          }
-        } catch (error) {
-          setMainListState((prev) => {
-            return { ...prev, isError: true, isLoading: false };
-          });
-          console.warn('Problem with data loading');
-          console.log(error);
+          setCoinsData(array);
+          calculateFullAmount();
+          // console.log(array);
         }
-      },
-    [],
-  );
+      } catch (error) {
+        setMainListState((prev) => {
+          return { ...prev, isError: true, isLoading: false };
+        });
+        console.warn("Problem with data loading");
+        console.log(error);
+      }
+    };
+    getData();
+  }, [favourites.coinsList]);
 
   async function fetchCharts(id: string) {
-    console.log('fetching');
+    console.log("fetching");
     setChartsLoadingState((prev) => {
       return { ...prev, isLoading: true, isError: false };
     });
@@ -210,7 +215,7 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
     try {
       const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7&interval=daily&precision=2`;
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
       });
 
       if (response.ok) {
@@ -221,7 +226,7 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
         const newItem: ChartsDataT = { id: id, ...data };
         const newArray: ChartsDataT[] = [];
         newArray.push(newItem);
-        setCoinsChartCoinsData((prev: Promise[]) => {
+        setCoinsChartCoinsData((prev) => {
           return [...prev, ...newArray];
         });
         return newItem;
@@ -235,7 +240,7 @@ export const CoinGeckoContextProvider = ({ children }: ChildrenProp) => {
       setChartsLoadingState((prev) => {
         return { ...prev, isLoading: false, isError: true };
       });
-      console.warn('Something went wrong loading chart data');
+      console.warn("Something went wrong loading chart data");
     }
   }
 
